@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123f78">
+  <title>Yonsei Shuttle</title>
+  <style>
+    :root {
+      --blue: #16477f;
+      --blue-dark: #10345e;
+      --blue-soft: #eaf1fa;
+      --ink: #182538;
+      --muted: #738096;
+      --line: #e7ebf1;
+      --bg: #f4f6fa;
+      --white: #fff;
+      --green: #18865b;
+      --red: #c74747;
+      --amber: #a86b10;
+      --shadow: 0 12px 35px rgba(25, 47, 78, .07);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; padding-bottom: 92px; }
+    .topbar {
+      background: linear-gradient(125deg, var(--blue-dark), #205b9a);
+      color: white; padding: 20px max(20px, calc((100vw - 1080px)/2));
+    }
+    .topbar-inner { max-width: 1080px; margin: auto; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { display:flex; align-items:center; gap:11px; }
+    .brand-mark {
+      width:42px; height:42px; border:1px solid rgba(255,255,255,.35);
+      border-radius:13px; display:grid; place-items:center; font-weight:900; letter-spacing:-1px;
+      background:rgba(255,255,255,.12);
+    }
+    .brand-name { font-size:17px; font-weight:800; letter-spacing:.2px; }
+    .brand-sub { color:#d8e6f7; font-size:11px; margin-top:1px; }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .status-pill { border:1px solid rgba(255,255,255,.28); border-radius:30px; padding:7px 11px; font-size:12px; color:#e8f1fc; }
+    .icon-btn { background:rgba(255,255,255,.13); color:white; border:0; border-radius:12px; width:38px; height:38px; }
+    main { max-width:1080px; margin:0 auto; padding:24px 20px; }
+    .welcome { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin:4px 0 22px; }
+    .eyebrow { color:var(--blue); font-size:11px; font-weight:800; letter-spacing:1.2px; }
+    h1 { margin:5px 0 4px; font-size:clamp(24px, 4vw, 32px); letter-spacing:-1.1px; }
+    .welcome p { margin:0; color:var(--muted); font-size:13px; }
+    .today { color:var(--muted); font-size:12px; white-space:nowrap; }
+    .notice {
+      display:flex; gap:11px; align-items:flex-start; padding:13px 15px;
+      background:#fff9eb; border:1px solid #f3e5c4; color:#79551d;
+      border-radius:14px; font-size:12px; margin-bottom:20px;
+    }
+    .notice strong { display:block; margin-bottom:2px; }
+    .hero {
+      background:linear-gradient(115deg, #16477f, #2868a9); color:white;
+      border-radius:22px; padding:23px; display:flex; justify-content:space-between; align-items:center;
+      gap:16px; box-shadow:var(--shadow); overflow:hidden; position:relative;
+    }
+    .hero:after { content:""; position:absolute; width:220px; height:220px; border:1px solid rgba(255,255,255,.13); border-radius:50%; right:45px; top:-135px; box-shadow:0 0 0 28px rgba(255,255,255,.04), 0 0 0 58px rgba(255,255,255,.03); }
+    .hero-content { position:relative; z-index:1; }
+    .hero-label { color:#cfe1f6; font-size:12px; }
+    .hero h2 { font-size:23px; margin:6px 0; letter-spacing:-.6px; }
+    .hero p { color:#d8e6f7; font-size:12px; margin:0; }
+    .hero .primary { position:relative; z-index:1; background:white; color:var(--blue); white-space:nowrap; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; margin:25px 0 13px; gap:10px; }
+    .section-head h2 { font-size:17px; margin:0; letter-spacing:-.4px; }
+    .section-head span { font-size:11px; color:var(--muted); }
+    .quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; }
+    .quick-card, .panel, .ride-card, .booking-card {
+      background:var(--white); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    }
+    .quick-card { padding:17px; cursor:pointer; transition:.18s; }
+    .quick-card:hover { transform:translateY(-2px); border-color:#c7d7ea; }
+    .quick-icon { width:39px; height:39px; display:grid; place-items:center; background:var(--blue-soft); color:var(--blue); border-radius:12px; font-size:19px; }
+    .quick-card strong { display:block; margin-top:12px; font-size:14px; }
+    .quick-card small { color:var(--muted); font-size:11px; }
+    .panel { padding:19px; }
+    .panel-title { font-size:15px; font-weight:800; margin:0 0 14px; }
+    .empty { color:var(--muted); text-align:center; padding:25px 10px; font-size:13px; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-title { margin:2px 0 5px; font-size:25px; }
+    .page-desc { color:var(--muted); margin:0 0 20px; font-size:13px; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+    .field label { display:block; font-size:12px; font-weight:700; margin:0 0 7px; }
+    .field input, .field select {
+      width:100%; border:1px solid #dfe5ed; border-radius:12px; padding:12px 13px;
+      color:var(--ink); background:white; outline:none; min-height:45px;
+    }
+    .field input:focus, .field select:focus { border-color:#6b94c2; box-shadow:0 0 0 3px #eaf1fa; }
+    .form-actions { display:flex; gap:9px; margin-top:15px; }
+    .btn {
+      border:0; border-radius:12px; padding:11px 16px; font-weight:750; font-size:13px;
+      background:var(--blue); color:white; transition:.15s;
+    }
+    .btn:hover { filter:brightness(1.07); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .btn.secondary { background:#edf1f6; color:#43536a; }
+    .btn.outline { background:white; border:1px solid #dce3ec; color:var(--blue); }
+    .btn.danger { background:#fff0f0; color:var(--red); }
+    .btn.small { padding:8px 11px; font-size:11px; }
+    .full { width:100%; }
+    .route-summary { display:flex; align-items:center; gap:12px; margin:18px 0; }
+    .route-point { flex:1; background:#f5f7fa; padding:12px; border-radius:12px; }
+    .route-point small { display:block; color:var(--muted); font-size:10px; }
+    .route-point strong { font-size:14px; }
+    .route-arrow { color:#8b98aa; font-size:18px; }
+    .rides { display:grid; gap:10px; margin-top:15px; }
+    .ride-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 15px; box-shadow:none; }
+    .ride-time { font-size:20px; font-weight:850; color:var(--blue); letter-spacing:-.6px; }
+    .ride-meta { color:var(--muted); font-size:11px; margin-top:2px; }
+    .tag { display:inline-flex; align-items:center; border-radius:30px; padding:5px 9px; font-size:10px; font-weight:800; background:#eef2f7; color:#617087; }
+    .tag.available { background:#e8f6ef; color:var(--green); }
+    .tag.full-tag { background:#fff0f0; color:var(--red); }
+    .tag.demo { background:#fff5df; color:var(--amber); }
+    .booking-list { display:grid; gap:11px; }
+    .booking-card { padding:16px; box-shadow:none; }
+    .booking-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .booking-route { font-size:15px; font-weight:800; margin:9px 0 4px; }
+    .booking-detail { font-size:11px; color:var(--muted); }
+    .booking-actions { display:flex; justify-content:flex-end; margin-top:12px; }
+    .status-message { margin-top:13px; border-radius:12px; padding:12px; font-size:12px; display:none; }
+    .status-message.show { display:block; }
+    .status-message.info { background:#edf4fc; color:#24517f; }
+    .status-message.error { background:#fff0f0; color:#a93636; }
+    .status-message.success { background:#eaf7f0; color:#176b49; }
+    .profile-row { display:flex; justify-content:space-between; gap:15px; padding:13px 0; border-bottom:1px solid var(--line); font-size:13px; }
+    .profile-row:last-child { border-bottom:0; }
+    .profile-row span { color:var(--muted); }
+    .bottom-nav {
+      position:fixed; z-index:20; bottom:0; left:0; right:0; background:rgba(255,255,255,.96);
+      border-top:1px solid var(--line); display:flex; justify-content:center; padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+      backdrop-filter:blur(12px);
+    }
+    .nav-inner { width:min(600px,100%); display:grid; grid-template-columns:repeat(4,1fr); }
+    .nav-btn { border:0; background:transparent; color:#8792a3; padding:5px 2px; display:grid; gap:3px; justify-items:center; font-size:10px; }
+    .nav-btn .nav-icon { font-size:19px; line-height:1.2; }
+    .nav-btn.active { color:var(--blue); font-weight:850; }
+    .toast {
+      position:fixed; z-index:50; left:50%; bottom:88px; transform:translate(-50%,15px);
+      background:#17283e; color:white; padding:11px 16px; border-radius:12px; font-size:12px;
+      opacity:0; pointer-events:none; transition:.2s; max-width:calc(100% - 36px); text-align:center;
+    }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .modal-backdrop { display:none; position:fixed; z-index:40; inset:0; background:rgba(14,26,43,.48); padding:18px; align-items:center; justify-content:center; }
+    .modal-backdrop.show { display:flex; }
+    .modal { background:white; width:min(420px,100%); border-radius:20px; padding:21px; box-shadow:0 20px 70px rgba(0,0,0,.2); }
+    .modal h3 { margin:0 0 7px; font-size:19px; }
+    .modal p { color:var(--muted); font-size:12px; margin:0 0 15px; }
+    .modal-actions { display:flex; gap:8px; margin-top:17px; }
+    .modal-actions button { flex:1; }
+    .footer-note { color:#9aa4b2; text-align:center; font-size:10px; margin:25px 0 5px; }
+    @media (max-width:650px) {
+      .topbar { padding:15px 17px; }
+      main { padding:19px 15px; }
+      .welcome { align-items:flex-start; flex-direction:column; gap:5px; }
+      .today { white-space:normal; }
+      .hero { padding:19px; align-items:flex-start; flex-direction:column; }
+      .hero .primary { width:100%; }
+      .quick-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+      .quick-card { padding:14px; }
+      .form-grid { grid-template-columns:1fr; }
+      .panel { padding:15px; }
+      .ride-card { padding:12px; }
+      .ride-time { font-size:18px; }
+      .status-pill { display:none; }
+    }
+    @media (max-width:360px) {
+      .quick-grid { grid-template-columns:1fr 1fr; }
+      .ride-card { align-items:flex-start; flex-direction:column; }
+      .ride-card .btn { width:100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">YS</div>
+        <div><div class="brand-name">YONSEI SHUTTLE</div><div class="brand-sub">국제캠퍼스 셔틀 통합 예약</div></div>
+      </div>
+      <div class="header-actions">
+        <span class="status-pill" id="loginStatus">체험 모드</span>
+        <button class="icon-btn" aria-label="알림" onclick="showToast('현재 체험 모드에서는 실제 학교 알림을 받을 수 없습니다.')">♧</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page active" id="page-home">
+      <div class="welcome">
+        <div><div class="eyebrow">YONSEI UNIVERSITY</div><h1>안녕하세요!</h1><p>셔틀 정보를 확인하고 간편하게 일정을 관리하세요.</p></div>
+        <div class="today" id="todayText"></div>
+      </div>
+      <div class="notice">
+        <div>ⓘ</div><div><strong>현재 체험용 프로토타입입니다.</strong>표시되는 시간표와 예약은 브라우저 내에서만 관리되며, 실제 학교 셔틀 예약 시스템에는 전송되지 않습니다.</div>
+      </div>
+      <div class="hero">
+        <div class="hero-content"><div class="hero-label">SHUTTLE RESERVATION</div><h2>오늘의 이동을 더 간편하게</h2><p>날짜와 시간을 선택해 셔틀 일정을 확인해 보세요.</p></div>
+        <button class="btn primary" onclick="navigate('reserve')">셔틀 예약하기 →</button>
+      </div>
+      <div class="section-head"><h2>빠른 메뉴</h2><span>원하는 기능을 선택하세요</span></div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="navigate('reserve')"><div class="quick-icon">▦</div><strong>시간표 조회</strong><small>날짜와 노선별 운행 확인</small></div>
+        <div class="quick-card" onclick="navigate('reserve')"><div class="quick-icon">＋</div><strong>셔틀 예약</strong><small>원하는 시간 선택</small></div>
+        <div class="quick-card" onclick="navigate('bookings')"><div class="quick-icon">▤</div><strong>예약 내역</strong><small>예약 상태와 일정 관리</small></div>
+        <div class="quick-card" onclick="navigate('profile')"><div class="quick-icon">⚙</div><strong>설정</strong><small>알림 및 이용 정보</small></div>
+      </div>
+      <div class="section-head"><h2>최근 예약</h2><span onclick="navigate('bookings')" style="cursor:pointer">전체 보기 →</span></div>
+      <div class="panel" id="recentBookings"><div class="empty">아직 저장된 예약이 없습니다.</div></div>
+      <div class="footer-note">Yonsei Shuttle · 개인 일정 관리용 프로토타입</div>
+    </section>
+
+    <section class="page" id="page-reserve">
+      <h1 class="page-title">셔틀 예약</h1>
+      <p class="page-desc">이용할 날짜와 노선을 선택하고 운행 정보를 확인하세요.</p>
+      <div class="panel">
+        <div class="panel-title">운행 조건 선택</div>
+        <div class="form-grid">
+          <div class="field"><label for="travelDate">예약 날짜</label><input type="date" id="travelDate"></div>
+          <div class="field"><label for="travelTime">희망 시간대</label><select id="travelTime"><option value="all">전체 시간</option><option value="morning">오전 (06:00~12:00)</option><option value="afternoon">오후 (12:00~18:00)</option><option value="evening">저녁 (18:00~)</option></select></div>
+          <div class="field"><label for="origin">출발지</label><select id="origin"><option>국제캠퍼스</option><option>신촌캠퍼스</option></select></div>
+          <div class="field"><label for="destination">도착지</label><select id="destination"><option>신촌캠퍼스</option><option>국제캠퍼스</option></select></div>
+        </div>
+        <div class="form-actions"><button class="btn full" onclick="searchRides()">시간표 조회하기</button></div>
+        <div class="status-message" id="searchMessage" role="status"></div>
+      </div>
+      <div class="section-head"><h2>운행 시간표</h2><span id="rideDateLabel">날짜를 선택하세요</span></div>
+      <div class="rides" id="rideResults"><div class="panel empty">날짜와 노선을 선택한 뒤 시간표를 조회하세요.</div></div>
+      <div class="footer-note">시간표는 화면 기능 확인을 위한 예시 데이터입니다.</div>
+    </section>
+
+    <section class="page" id="page-bookings">
+      <h1 class="page-title">예약 내역</h1>
+      <p class="page-desc">이 브라우저에서 저장한 체험용 예약을 확인하고 관리할 수 있습니다.</p>
+      <div class="booking-list" id="bookingList"><div class="panel empty">저장된 예약이 없습니다.</div></div>
+      <div class="footer-note">실제 학교 예약 내역과 연동되지 않습니다.</div>
+    </section>
+
+    <section class="page" id="page-profile">
+      <h1 class="page-title">마이페이지</h1>
+      <p class="page-desc">앱 설정 및 서비스 이용 안내</p>
+      <div class="panel">
+        <div class="panel-title">계정 정보</div>
+        <div class="profile-row"><span>로그인 상태</span><strong>체험 모드</strong></div>
+        <div class="profile-row"><span>학교 계정 연동</span><strong>미연동</strong></div>
+        <div class="profile-row"><span>데이터 저장 위치</span><strong>현재 브라우저</strong></div>
+      </div>
+      <div class="panel" style="margin-top:13px">
+        <div class="panel-title">예약 오픈 알림</div>
+        <div class="field"><label for="reminderDate">알림 받을 날짜와 시간</label><input type="datetime-local" id="reminderDate"></div>
+        <div class="form-actions"><button class="btn" onclick="setReminder()">알림 설정</button><button class="btn secondary" onclick="clearReminder()">해제</button></div>
+        <div class="status-message" id="reminderMessage"></div>
+      </div>
+      <div class="panel" style="margin-top:13px">
+        <div class="panel-title">서비스 안내</div>
+        <p style="font-size:12px;color:var(--muted);margin:0">현재 버전은 HTML, CSS, JavaScript만으로 제작된 프론트엔드 프로토타입입니다. 학교 계정 로그인, 실시간 시간표, 실제 예약 및 취소는 학교 측에서 허용하는 연동 수단과 서버가 마련되어야 사용할 수 있습니다.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="하단 메뉴">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-page="home" onclick="navigate('home')"><span class="nav-icon">⌂</span><span>홈</span></button>
+      <button class="nav-btn" data-page="reserve" onclick="navigate('reserve')"><span class="nav-icon">▦</span><span>셔틀 예약</span></button>
+      <button class="nav-btn" data-page="bookings" onclick="navigate('bookings')"><span class="nav-icon">▤</span><span>예약 내역</span></button>
+      <button class="nav-btn" data-page="profile" onclick="navigate('profile')"><span class="nav-icon">♙</span><span>마이페이지</span></button>
+    </div>
+  </nav>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h3 id="modalTitle">예약 내용을 확인하세요</h3>
+    <p>아래 일정은 체험용으로 브라우저에만 저장됩니다. 실제 셔틀 예약은 진행되지 않습니다.</p>
+    <div id="modalDetails"></div>
+    <div class="modal-actions"><button class="btn secondary" onclick="closeModal()">돌아가기</button><button class="btn" id="confirmBooking">체험 예약 저장</button></div>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = "yonseiShuttleDemoBookings";
+  let selectedRide = null;
+  let toastTimer = null;
+  let reminderTimer = null;
+
+  function localDateString(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  function readBookings() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveBookings(items) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    })[ch]);
+  }
+  function showToast(message) {
+    const toast = $("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+  }
+  function navigate(page) {
+    document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+    $("page-" + page).classList.add("active");
+    document.querySelectorAll(".nav-btn").forEach(el => el.classList.toggle("active", el.dataset.page === page));
+    if (page === "bookings") renderBookings();
+    if (page === "home") renderRecent();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function showMessage(id, message, type = "info") {
+    const el = $(id);
+    el.textContent = message;
+    el.className = `status-message show ${type}`;
+  }
+  function hideMessage(id) {
+    const el = $(id);
+    el.className = "status-message";
+    el.textContent = "";
+  }
+  function searchRides() {
+    const date = $("travelDate").value;
+    const origin = $("origin").value;
+    const destination = $("destination").value;
+    const period = $("travelTime").value;
+    if (!date) { showMessage("searchMessage", "예약 날짜를 먼저 선택해 주세요.", "error"); return; }
+    if (origin === destination) { showMessage("searchMessage", "출발지와 도착지를 서로 다르게 선택해 주세요.", "error"); return; }
+    if (date < localDateString()) { showMessage("searchMessage", "지난 날짜는 조회할 수 없습니다.", "error"); return; }
+
+    const allTimes = ["07:30", "08:10", "09:00", "10:30", "12:10", "13:30", "15:00", "16:20", "17:40", "19:00"];
+    const times = allTimes.filter(t => {
+      const h = Number(t.slice(0,2));
+      return period === "all" || (period === "morning" && h < 12) ||
+        (period === "afternoon" && h >= 12 && h < 18) || (period === "evening" && h >= 18);
+    });
+    $("rideDateLabel").textContent = `${date} · ${origin} → ${destination}`;
+    $("rideResults").innerHTML = times.map((time, index) => {
+      const seats = [8, 5, 0, 12, 3, 7, 0, 9, 4, 6][allTimes.indexOf(time)];
+      const available = seats > 0;
+      return `<article class="ride-card">
+        <div><div class="ride-time">${time}</div><div class="ride-meta">${escapeHTML(origin)} → ${escapeHTML(destination)}</div>
+        <div style="margin-top:7px"><span class="tag demo">예시 시간표</span> <span class="tag ${available ? "available" : "full-tag"}">${available ? "예시 잔여 " + seats + "석" : "예시 마감"}</span></div></div>
+        <button class="btn ${available ? "" : "secondary"}" ${available ? "" : "disabled"} onclick="openBooking('${date}','${time}','${escapeHTML(origin)}','${escapeHTML(destination)}',${seats})">${available ? "선택하기" : "마감"}</button>
+      </article>`;
+    }).join("") || '<div class="panel empty">선택한 시간대에 표시할 예시 운행 정보가 없습니다.</div>';
+    showMessage("searchMessage", "예시 시간표를 표시했습니다. 실제 학교 운행 정보가 아닙니다.", "info");
+  }
+  function openBooking(date, time, origin, destination, seats) {
+    selectedRide = { date, time, origin, destination, seats };
+    $("modalDetails").innerHTML = `
+      <div class="profile-row"><span>날짜</span><strong>${escapeHTML(date)}</strong></div>
+      <div class="profile-row"><span>시간</span><strong>${escapeHTML(time)}</strong></div>
+      <div class="profile-row"><span>노선</span><strong>${escapeHTML(origin)} → ${escapeHTML(destination)}</strong></div>
+      <div class="profile-row"><span>표시 상태</span><strong>체험용 예시</strong></div>`;
+    $("confirmModal").classList.add("show");
+  }
+  function closeModal() {
+    $("confirmModal").classList.remove("show");
+    selectedRide = null;
+  }
+  $("confirmBooking").addEventListener("click", () => {
+    if (!selectedRide) return;
+    const bookings = readBookings();
+    const duplicate = bookings.some(b => b.date === selectedRide.date && b.time === selectedRide.time &&
+      b.origin === selectedRide.origin && b.destination === selectedRide.destination && b.status === "저장됨");
+    if (duplicate) { closeModal(); showToast("동일한 체험 일정이 이미 저장되어 있습니다."); return; }
+    bookings.unshift({ ...selectedRide, id: Date.now(), status: "저장됨", createdAt: new Date().toISOString() });
+    saveBookings(bookings);
+    closeModal();
+    showToast("체험용 일정이 이 브라우저에 저장되었습니다.");
+    renderBookings();
+  });
+  function renderBookings() {
+    const bookings = readBookings();
+    if (!bookings.length) {
+      $("bookingList").innerHTML = '<div class="panel empty">저장된 예약이 없습니다.<br>셔틀 예약 메뉴에서 일정을 선택해 보세요.</div>';
+      return;
+    }
+    $("bookingList").innerHTML = bookings.map(b => `
+      <article class="booking-card">
+        <div class="booking-top"><span class="tag demo">체험용 · 실제 예약 아님</span><span class="tag">${escapeHTML(b.status)}</span></div>
+        <div class="booking-route">${escapeHTML(b.origin)} <span style="color:#94a0af">→</span> ${escapeHTML(b.destination)}</div>
+        <div class="booking-detail">${escapeHTML(b.date)} · ${escapeHTML(b.time)}</div>
+        <div class="booking-actions"><button class="btn danger small" onclick="cancelBooking(${Number(b.id)})">일정 삭제</button></div>
+      </article>`).join("");
+  }
+  function cancelBooking(id) {
+    if (!confirm("이 브라우저에 저장된 체험 일정을 삭제할까요? 실제 학교 예약 취소와는 무관합니다.")) return;
+    saveBookings(readBookings().filter(b => b.id !== id));
+    renderBookings();
+    renderRecent();
+    showToast("체험용 일정이 삭제되었습니다.");
+  }
+  function renderRecent() {
+    const bookings = readBookings().slice(0, 2);
+    $("recentBookings").innerHTML = bookings.length ? bookings.map(b =>
+      `<div class="profile-row"><strong>${escapeHTML(b.origin)} → ${escapeHTML(b.destination)}</strong><span>${escapeHTML(b.date)} · ${escapeHTML(b.time)}</span></div>`
+    ).join("") : '<div class="empty">아직 저장된 일정이 없습니다.</div>';
+  }
+  function setReminder() {
+    const value = $("reminderDate").value;
+    if (!value) { showMessage("reminderMessage", "알림 날짜와 시간을 선택해 주세요.", "error"); return; }
+    const target = new Date(value).getTime();
+    const delay = target - Date.now();
+    if (delay <= 0) { showMessage("reminderMessage", "현재 시각보다 이후의 시간을 선택해 주세요.", "error"); return; }
+    if (delay > 2147480000) { showMessage("reminderMessage", "브라우저 타이머가 지원하는 범위를 초과합니다. 알림 시각을 더 가까운 시간으로 설정해 주세요.", "error"); return; }
+    clearTimeout(reminderTimer);
+    reminderTimer = setTimeout(() => {
+      alert("설정한 알림 시간입니다. 셔틀 예약 가능 여부를 확인해 보세요.");
+      showMessage("reminderMessage", "설정한 알림 시간이 되었습니다.", "success");
+    }, delay);
+    showMessage("reminderMessage", "이 페이지가 열려 있는 동안 알림이 설정됩니다. 브라우저를 닫으면 알림이 실행되지 않을 수 있습니다.", "success");
+  }
+  function clearReminder() {
+    clearTimeout(reminderTimer);
+    $("reminderDate").value = "";
+    showMessage("reminderMessage", "알림 설정을 해제했습니다.", "info");
+  }
+
+  $("todayText").textContent = new Intl.DateTimeFormat("ko-KR", {
+    year:"numeric", month:"long", day:"numeric", weekday:"long"
+  }).format(new Date());
+  $("travelDate").min = localDateString();
+  $("travelDate").value = localDateString();
+  renderRecent();
+</script>
+</body>
+</html>
